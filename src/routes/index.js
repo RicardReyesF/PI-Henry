@@ -3,8 +3,38 @@ const { Router } = require('express');
 // Ejemplo: const authRouter = require('./auth.js');
 const { Recipe, Diets } = require('../db')
 
+const axios = require('axios');
 
 const router = Router();
+
+
+
+router.get('/getAllrecipe', async (req,res) => {
+    try {
+        let newRecipes = [];
+        const {data}  = await axios.get(`https://run.mocky.io/v3/84b3f19c-7642-4552-b69c-c53742badee5`);
+        data.results.map( recipes => {
+            newRecipes.push ({
+                //id:         recipes.id,
+                name:       recipes.title,
+                resumen:    recipes.summary,
+                score:      recipes.healthScore,
+                //stepByStep: recipes.analyzedInstructions.steps,
+                img:        recipes.image,
+                typeDish:   recipes.dishTypes[0],
+                diet:       recipes.diets[0]       
+                
+            })
+        })
+        await Recipe.bulkCreate(newRecipes);
+        return res.json(newRecipes);
+    } catch (error) {
+        res.send(error.message)
+    }
+})
+
+
+
 router.get('/recipes',async (req,res) => {
     const { name } = req.query;
 
@@ -18,13 +48,14 @@ router.get('/recipes',async (req,res) => {
 
 });
 
+
 router.get('/recipes/:id', async (req,res) => {
 
         const idRecipe = await Recipe.findAll({
             where:{
                 id: req.params.id
             },
-            attributes: ['resumen'],
+            //attributes: ['resumen'],
             include: Diets
         });
         return (idRecipe ? res.json(idRecipe) : res.send("no existe el id proporcionado"))
@@ -53,7 +84,7 @@ router.post('/recipes', async(req,res) => {
     }
 })
 
-router.put('/diets', async (req,res) => {
+router.get('/diets', async (req,res) => {
     
     const { diets } = req.body;
     const allDiets = await Diets.findAll();

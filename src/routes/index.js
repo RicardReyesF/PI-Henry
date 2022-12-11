@@ -8,26 +8,49 @@ const axios = require('axios');
 const router = Router();
 
 
-
-router.get('/getAllrecipe', async (req,res) => {
-    try {
-        let newRecipes = [];
-        const {data}  = await axios.get(`https://run.mocky.io/v3/84b3f19c-7642-4552-b69c-c53742badee5`);
-        data.results.map( recipes => {
-            newRecipes.push ({
-                //id:         recipes.id,
+const getInfoApi = async () => {
+    const api = await axios.get('https://run.mocky.io/v3/84b3f19c-7642-4552-b69c-c53742badee5');
+    const infoApi = api.data.results.map( recipes => {
+        return {
+                id:         recipes.id,
                 name:       recipes.title,
                 resumen:    recipes.summary,
                 score:      recipes.healthScore,
-                //stepByStep: recipes.analyzedInstructions.steps,
+                // stepByStep: recipes.analyzedInstructions.steps.map( result =>{
+                //     return {
+                //         stepNumber: result.number,
+                //         step:       result.step
+                //     }
+                // }),
                 img:        recipes.image,
-                typeDish:   recipes.dishTypes[0],
-                diet:       recipes.diets[0]       
-                
-            })
-        })
-        await Recipe.bulkCreate(newRecipes);
-        return res.json(newRecipes);
+                typeDish:   recipes.dishTypes.map( type => type),
+                diet:       recipes.diets.map(diet => diet),    
+        }
+    })
+    //console.log(infoApi);
+    return infoApi;
+} 
+
+const getInfoDb = async () => {
+    const db = await Recipe.findAll({
+        attributes:["name","resumen","score","stepByStep"],
+        include: Diets,
+    })
+    console.log(db);
+    return db;
+}
+
+const getAllRecipes = async () => {
+    const infoApi = await getInfoApi();
+    const infoDb  = await getInfoDb();
+    const newRecipes = infoApi.concat(infoDb);
+    console.log(newRecipes);
+    return newRecipes;
+}
+
+router.get('/recipes', async (req,res) => {
+    try {
+        res.send( getAllRecipes());
     } catch (error) {
         res.send(error.message)
     }
@@ -35,7 +58,7 @@ router.get('/getAllrecipe', async (req,res) => {
 
 
 
-router.get('/recipes',async (req,res) => {
+router.get('/recipes1',async (req,res) => {
     const { name } = req.query;
 
         const recipe = await Recipe.findAll({
@@ -55,7 +78,7 @@ router.get('/recipes/:id', async (req,res) => {
             where:{
                 id: req.params.id
             },
-            //attributes: ['resumen'],
+            attributes: ['resumen'],
             include: Diets
         });
         return (idRecipe ? res.json(idRecipe) : res.send("no existe el id proporcionado"))

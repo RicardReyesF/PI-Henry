@@ -25,16 +25,6 @@ module.exports = (sequelize) => {
     },
     stepByStep: {
       type: DataTypes.TEXT,
-    },
-    img: {
-      type: DataTypes.STRING,
-      defaultValue: "https://ychef.files.bbci.co.uk/976x549/p04tx3m6.jpg"
-    },
-    typeDish: {
-      type: DataTypes.TEXT
-    },
-    diet: {
-      type: DataTypes.TEXT
     }
 
   });

@@ -52,12 +52,14 @@ router.get('/recipes', async (req,res) => {
     const recipes = await getAllRecipes();
     
     if(!query){
-        res.json(recipes);
+        res.status(200).json(recipes);
+        res.status(400).send("No existe ninguna receta")
     }else {
         const queryRecipes = await recipes.filter(recipe => {
             return recipe.name.includes(query)
         })
-        res.json(queryRecipes);
+        res.status(200).json(queryRecipes);
+        res.status(404).send("No existe ninguna receta con ese nombre")
     }
 })
 
@@ -69,15 +71,15 @@ router.get('/recipes/:id', async (req,res) => {
     const idRecipes = await recipes.filter(recipe => {
         return recipe.id == id;
     })
-    res.json(idRecipes)
-    
+    res.status(200).json(idRecipes);
+    res.status(404).send("No existe una receta con ese ID");
 });
 
 
 router.post('/recipes', async(req,res) => {
     const { name, resumen, score, stepByStep, dietId } = req.body;
     try {
-        if(! name || !resumen ) return (res.json({ error: "Faltan datos"}));
+        if(! name || !resumen ) return (res.send( "Faltan datos"));
         let newRecipes = await Recipe.create({
             name: name,
             resumen: resumen,
@@ -91,7 +93,8 @@ router.post('/recipes', async(req,res) => {
             }
         });
         newRecipes.addDiets(dietName)
-        res.json(newRecipes)
+        res.json(newRecipes);
+        res.send("Se creo la receta correctamente")
         
     } catch (err) {
         res.json({

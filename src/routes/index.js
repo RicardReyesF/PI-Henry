@@ -16,27 +16,26 @@ const getInfoApi = async () => {
                 name:       recipes.title,
                 resumen:    recipes.summary,
                 score:      recipes.healthScore,
-                // stepByStep: recipes.analyzedInstructions.steps.map( result =>{
-                //     return {
-                //         stepNumber: result.number,
-                //         step:       result.step
-                //     }
-                // }),
+                stepByStep: recipes.analyzedInstructions.map( result => result.steps.map( s => {
+                    return {
+                        numberStep: s.number,
+                        step: s.step
+                    }
+                })),
                 img:        recipes.image,
                 typeDish:   recipes.dishTypes.map( type => type),
                 diet:       recipes.diets.map(diet => diet),    
         }
     })
-    //console.log(infoApi);
+
     return infoApi;
 } 
 
 const getInfoDb = async () => {
     const db = await Recipe.findAll({
-        attributes:["name","resumen","score","stepByStep"],
+        attributes:["id","name","resumen","score","stepByStep"],
         include: Diets,
     })
-    console.log(db);
     return db;
 }
 
@@ -44,60 +43,54 @@ const getAllRecipes = async () => {
     const infoApi = await getInfoApi();
     const infoDb  = await getInfoDb();
     const newRecipes = infoApi.concat(infoDb);
-    console.log(newRecipes);
+    
     return newRecipes;
 }
 
 router.get('/recipes', async (req,res) => {
-    try {
-        res.send( getAllRecipes());
-    } catch (error) {
-        res.send(error.message)
+    const { query } = req.query;
+    const recipes = await getAllRecipes();
+    
+    if(!query){
+        res.json(recipes);
+    }else {
+        const queryRecipes = await recipes.filter(recipe => {
+            return recipe.name.includes(query)
+        })
+        res.json(queryRecipes);
     }
 })
 
-
-
-router.get('/recipes1',async (req,res) => {
-    const { name } = req.query;
-
-        const recipe = await Recipe.findAll({
-            where: {
-                name: name,
-            }
-        });
-        return (recipe.length > 0  ? res.json(recipe) : res.send ("No existe la receta, intente otro nombre"))
-
-
-});
-
-
 router.get('/recipes/:id', async (req,res) => {
-
-        const idRecipe = await Recipe.findAll({
-            where:{
-                id: req.params.id
-            },
-            attributes: ['resumen'],
-            include: Diets
-        });
-        return (idRecipe ? res.json(idRecipe) : res.send("no existe el id proporcionado"))
-
+    const  {id}  = req.params;
+    //console.log(id.type())
+    const recipes = await getAllRecipes();
+    
+    const idRecipes = await recipes.filter(recipe => {
+        return recipe.id == id;
+    })
+    res.json(idRecipes)
+    
 });
 
 
 router.post('/recipes', async(req,res) => {
-    const { id, name, resumen, score, stepByStep, dietId } = req.body;
+    const { name, resumen, score, stepByStep, dietId } = req.body;
     try {
         if(! name || !resumen ) return (res.json({ error: "Faltan datos"}));
-        const newRecipes = await Recipe.create({
+        let newRecipes = await Recipe.create({
             name: name,
             resumen: resumen,
             score: score,
             stepByStep: stepByStep
         });
-        const dietName = await Diets.findByPk(dietId);
-        await newRecipes.addDiets(dietName)
+        
+        let dietName = await Diets.findAll({
+            where: {
+                id: dietId
+            }
+        });
+        newRecipes.addDiets(dietName)
         res.json(newRecipes)
         
     } catch (err) {
@@ -109,7 +102,30 @@ router.post('/recipes', async(req,res) => {
 
 router.get('/diets', async (req,res) => {
     
-    const { diets } = req.body;
+    const diets = [
+        {        
+        "name": "Gluten Free"
+        },
+        {
+          "name": "Ketogenic"
+        },{
+          "name": "Vegetarian"
+        },{
+          "name": "Lacto-Vegetarian"
+        },{
+          "name": "Ovo-Vegetarian"
+        },{
+          "name": "Vegan"
+        },{
+          "name": "Pescetarian"
+        },{
+          "name": "Paleo"
+        },{
+          "name": "Low FODMAP"
+        },{
+          "name": "Whole30"
+        }]
+    
     const allDiets = await Diets.findAll();
     if (allDiets.length > 0){
         return res.json(allDiets);  

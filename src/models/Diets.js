@@ -3,10 +3,11 @@ const { DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
     sequelize.define('diets', {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true,
+            
         },
         name: {
             type: DataTypes.STRING,

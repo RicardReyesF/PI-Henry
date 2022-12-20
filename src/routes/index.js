@@ -53,13 +53,13 @@ router.get('/recipes', async (req,res) => {
     
     if(!query){
         res.status(200).json(recipes);
-        res.status(400).send("No existe ninguna receta")
+        //res.status(400).send("No existe ninguna receta")
     }else {
         const queryRecipes = await recipes.filter(recipe => {
             return recipe.name.includes(query)
         })
         res.status(200).json(queryRecipes);
-        res.status(404).send("No existe ninguna receta con ese nombre")
+        //res.status(404).send("No existe ninguna receta con ese nombre")
     }
 })
 

@@ -72,7 +72,7 @@ router.get('/recipes/:id', async (req,res) => {
         return recipe.id == id;
     })
     res.status(200).json(idRecipes);
-    res.status(404).send("No existe una receta con ese ID");
+    //res.status(404).send("No existe una receta con ese ID");
 });
 
 

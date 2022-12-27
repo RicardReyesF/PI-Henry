@@ -78,29 +78,29 @@ router.get('/recipes/:id', async (req,res) => {
 
 router.post('/recipes', async(req,res) => {
     const { name, resumen, score, stepByStep, dietId } = req.body;
-    try {
-        if(! name || !resumen ) return (res.send( "Faltan datos"));
+    
+        if(! name || !resumen ) {
+            return (res.send( "Faltan datos"));
+        }
         let newRecipes = await Recipe.create({
             name: name,
             resumen: resumen,
             score: score,
-            stepByStep: stepByStep
+            stepByStep: stepByStep,
+            
         });
         
-        let dietName = await Diets.findAll({
-            where: {
-                id: dietId
-            }
-        });
-        newRecipes.addDiets(dietName)
-        res.json(newRecipes);
+            let dietName = await Diets.findAll({
+                where: {
+                    id: dietId
+                }
+            });    
+            newRecipes.addDiets(dietName)
+        
+        
+        //res.json(newRecipes);
         res.send("Se creo la receta correctamente")
         
-    } catch (err) {
-        res.json({
-            error: "Se repitio el nombre"
-        })
-    }
 })
 
 router.get('/diets', async (req,res) => {

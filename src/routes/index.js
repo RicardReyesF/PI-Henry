@@ -1,9 +1,10 @@
 const { Router } = require('express');
 // Importar todos los routers;
 // Ejemplo: const authRouter = require('./auth.js');
-const { Recipe, Diets } = require('../db')
+const { Recipe, Diet } = require('../db')
 
 const axios = require('axios');
+
 
 const router = Router();
 
@@ -24,7 +25,7 @@ const getInfoApi = async () => {
                 })),
                 img:        recipes.image,
                 typeDish:   recipes.dishTypes.map( type => type),
-                diet:       recipes.diets.map(diet => diet),    
+                diets:       recipes.diets.map(diet => diet),    
         }
     })
 
@@ -33,8 +34,13 @@ const getInfoApi = async () => {
 
 const getInfoDb = async () => {
     const db = await Recipe.findAll({
-        attributes:["id","name","resumen","score","stepByStep"],
-        include: Diets,
+        include:{
+            model: Diet,
+            attributes:["name"],
+            through:{
+                attributes:[]
+            }
+        }
     })
     return db;
 }
@@ -90,10 +96,10 @@ router.post('/recipes', async(req,res) => {
             
         });
         
-            let dietName = await Diets.findAll({
+            let dietName = await Diet.findAll({
                 where: {
                     id: dietId
-                }
+                },
             });    
             newRecipes.addDiets(dietName)
         
@@ -129,11 +135,11 @@ router.get('/diets', async (req,res) => {
           "name": "Whole30"
         }]
     
-    const allDiets = await Diets.findAll();
+    const allDiets = await Diet.findAll();
     if (allDiets.length > 0){
         return res.json(allDiets);  
     } else {
-        const createDiet = await Diets.bulkCreate(diets);
+        const createDiet = await Diet.bulkCreate(diets);
         return res.json(createDiet);
 
     }

@@ -62,7 +62,7 @@ router.get('/recipes', async (req,res) => {
         //res.status(400).send("No existe ninguna receta")
     }else {
         const queryRecipes = await recipes.filter(recipe => {
-            if (queryRecipes >0) {
+            if (queryRecipes.length >0) {
                 return recipe.name.includes(query) 
             }else {
                 return "no existe ninguna receta con ese nombre"
